@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem E-Aduan Neo-Brutalism</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #fce7f3;
+            background-image: radial-gradient(#000 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+        
+        .brutal-border { border: 4px solid #000; }
+        .brutal-shadow { box-shadow: 8px 8px 0px #000; }
+        .brutal-shadow-sm { box-shadow: 4px 4px 0px #000; }
+        .brutal-button:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px #000 !important;
+        }
+        
+        textarea::-webkit-scrollbar { width: 12px; border-left: 2px solid #000; }
+        textarea::-webkit-scrollbar-thumb { background-color: #fbbf24; border: 2px solid #000; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 flex flex-col items-center relative">
+
+    <!-- Tab Navigation -->
+    <div class="w-full max-w-5xl flex gap-4 mb-6 z-20 relative">
+        <button onclick="switchTab('form')" id="tabForm" class="brutal-button bg-yellow-300 border-4 border-black p-3 text-lg md:text-xl font-bold uppercase brutal-shadow transition-all flex-1">
+            📝 Hantar Aduan
+        </button>
+        <button onclick="switchTab('admin')" id="tabAdmin" class="brutal-button bg-white border-4 border-black p-3 text-lg md:text-xl font-bold uppercase brutal-shadow transition-all flex-1">
+            🔒 Admin Dashboard
+        </button>
+    </div>
+
+    <!-- View 1: Form Hantar Aduan -->
+    <main id="viewForm" class="w-full max-w-3xl bg-white brutal-border brutal-shadow p-6 md:p-10 relative z-10 block">
+        
+        <div class="bg-yellow-300 brutal-border brutal-shadow-sm p-4 mb-8 -mt-12 -ml-12 inline-block transform -rotate-2">
+            <h1 class="text-3xl md:text-5xl font-bold uppercase tracking-tight text-black">
+                Sistem E-Aduan
+            </h1>
+        </div>
+        <p class="text-lg font-bold mb-8 border-b-4 border-black pb-4">
+            Laporkan isu atau aduan anda di sini. Kami sedia mendengar.
+        </p>
+
+        <!-- Alert Success -->
+        <div id="successAlert" class="hidden bg-green-400 brutal-border p-4 mb-6 transform transition-all">
+            <p class="font-bold text-lg md:text-xl flex flex-col gap-1">
+                <span>✅ Aduan Berjaya Dihantar! Terima kasih.</span>
+                <span class="text-sm md:text-base">📄 Salinan PDF telah berjaya di e-melkan ke peti masuk anda.</span>
+            </p>
+        </div>
+
+        <!-- Alert Error -->
+        <div id="errorAlert" class="hidden bg-red-400 brutal-border p-4 mb-6 transform transition-all">
+            <p class="font-bold text-lg flex flex-col gap-1">
+                <span>❌ Terdapat ralat sistem. Sila cuba sebentar lagi.</span>
+            </p>
+        </div>
+
+        <!-- Form -->
+        <form id="aduanForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label for="nama" class="font-bold text-lg uppercase block">Nama Penuh</label>
+                    <input type="text" id="nama" required
+                        class="w-full bg-blue-50 brutal-border p-3 text-lg focus:outline-none focus:bg-yellow-200 focus:brutal-shadow-sm transition-all"
+                        placeholder="Cth: Ali bin Abu">
+                </div>
+                <div class="space-y-2">
+                    <label for="telefon" class="font-bold text-lg uppercase block">No. Telefon</label>
+                    <input type="tel" id="telefon" required
+                        class="w-full bg-blue-50 brutal-border p-3 text-lg focus:outline-none focus:bg-yellow-200 focus:brutal-shadow-sm transition-all"
+                        placeholder="Cth: 012-3456789">
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label for="email" class="font-bold text-lg uppercase block">E-mel</label>
+                <input type="email" id="email" required
+                    class="w-full bg-blue-50 brutal-border p-3 text-lg focus:outline-none focus:bg-yellow-200 focus:brutal-shadow-sm transition-all"
+                    placeholder="Cth: ali@email.com (Untuk Salinan PDF)">
+            </div>
+
+            <div class="space-y-2">
+                <label for="jenisAduan" class="font-bold text-lg uppercase block">Jenis Aduan</label>
+                <select id="jenisAduan" required
+                    class="w-full bg-purple-200 brutal-border p-3 text-lg font-bold cursor-pointer focus:outline-none focus:brutal-shadow-sm transition-all appearance-none">
+                    <option value="" disabled selected>-- Pilih Kategori --</option>
+                    <option value="Kerosakan Infrastruktur">Kerosakan Infrastruktur</option>
+                    <option value="Perkhidmatan Pelanggan">Perkhidmatan Pelanggan</option>
+                    <option value="Keselamatan">Keselamatan & Kebersihan</option>
+                    <option value="Lain-lain">Lain-lain</option>
+                </select>
+            </div>
+
+            <div class="space-y-2">
+                <label for="deskripsi" class="font-bold text-lg uppercase block">Deskripsi Aduan</label>
+                <textarea id="deskripsi" rows="4" required
+                    class="w-full bg-blue-50 brutal-border p-3 text-lg resize-none focus:outline-none focus:bg-yellow-200 focus:brutal-shadow-sm transition-all"
+                    placeholder="Sila huraikan aduan anda secara terperinci..."></textarea>
+            </div>
+
+            <button type="button" onclick="showPreview()" 
+                class="brutal-button w-full bg-orange-400 hover:bg-orange-500 brutal-border brutal-shadow-sm p-4 text-2xl font-bold uppercase tracking-wider transition-all mt-8">
+                Pratonton & Hantar
+            </button>
+        </form>
+    </main>
+
+    <!-- View 2: Admin Password Auth -->
+    <main id="viewAuth" class="w-full max-w-xl bg-white brutal-border brutal-shadow p-6 md:p-10 relative z-10 hidden mt-10">
+        <div class="bg-blue-300 brutal-border brutal-shadow-sm p-4 mb-8 -mt-8 -ml-12 inline-block transform -rotate-2">
+            <h2 class="text-3xl font-bold uppercase tracking-tight text-black">Log Masuk Admin</h2>
+        </div>
+        <div class="space-y-6">
+            <div class="space-y-2">
+                <label for="adminPassword" class="font-bold text-lg uppercase block">Kata Laluan</label>
+                <input type="password" id="adminPassword" 
+                    class="w-full bg-blue-50 brutal-border p-3 text-lg focus:outline-none focus:bg-yellow-200 focus:brutal-shadow-sm transition-all"
+                    placeholder="Masukkan kata laluan... (admin123)">
+                <p id="authError" class="text-red-500 font-bold hidden">❌ Kata laluan salah!</p>
+            </div>
+            <button onclick="verifyPassword()" class="brutal-button w-full bg-green-400 hover:bg-green-500 brutal-border brutal-shadow-sm p-3 text-xl font-bold uppercase transition-all">
+                Semak Akses
+            </button>
+        </div>
+    </main>
+
+    <!-- View 3: Admin Dashboard -->
+    <main id="viewDashboard" class="w-full max-w-5xl bg-white brutal-border brutal-shadow p-6 md:p-10 relative z-10 hidden">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b-4 border-black pb-4 gap-4">
+            <h2 class="text-3xl md:text-4xl font-bold uppercase">📊 Papan Pemuka Aduan</h2>
+            <button onclick="loadDashboardData()" class="brutal-button bg-cyan-300 hover:bg-cyan-400 px-6 py-3 brutal-border brutal-shadow-sm font-bold uppercase transition-all">🔄 Refresh Data</button>
+        </div>
+
+        <div id="dashboardLoading" class="text-center py-12 font-bold text-2xl animate-pulse text-gray-600">
+            ⏳ Sedang memuat turun data dari Google Sheets...
+        </div>
+
+        <div id="dashboardContent" class="hidden space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-yellow-300 brutal-border p-6 brutal-shadow-sm transform hover:-translate-y-1 transition-all">
+                    <h3 class="text-lg font-bold uppercase mb-2">Jumlah Aduan</h3>
+                    <p id="totalAduan" class="text-6xl font-black">0</p>
+                </div>
+                <div class="bg-pink-300 brutal-border p-6 brutal-shadow-sm md:col-span-2 transform hover:-translate-y-1 transition-all">
+                    <h3 class="text-lg font-bold uppercase mb-2">Kategori Tertinggi (Kekerapan)</h3>
+                    <p id="topKategori" class="text-3xl md:text-5xl font-black mt-2">-</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white brutal-border p-4 brutal-shadow-sm">
+                    <h3 class="font-bold uppercase border-b-4 border-black pb-2 mb-4">Pecahan Mengikut Kategori</h3>
+                    <div class="relative h-64 md:h-80"><canvas id="kategoriChart"></canvas></div>
+                </div>
+                <div class="bg-white brutal-border p-4 brutal-shadow-sm">
+                    <h3 class="font-bold uppercase border-b-4 border-black pb-2 mb-4">Trend Aduan Harian</h3>
+                    <div class="relative h-64 md:h-80"><canvas id="trendChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="bg-white brutal-border p-4 brutal-shadow-sm overflow-x-auto">
+                <h3 class="font-bold uppercase border-b-4 border-black pb-2 mb-4">Senarai Aduan (10 Terkini)</h3>
+                <table class="w-full text-left border-collapse min-w-max">
+                    <thead>
+                        <tr class="bg-blue-300">
+                            <th class="border-4 border-black p-3 uppercase font-black">Tarikh</th>
+                            <th class="border-4 border-black p-3 uppercase font-black">Nama</th>
+                            <th class="border-4 border-black p-3 uppercase font-black">Kategori</th>
+                            <th class="border-4 border-black p-3 uppercase font-black">Deskripsi (Ringkas)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Pratonton -->
+    <div id="previewModal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl brutal-border brutal-shadow p-6 md:p-8 transform scale-95 opacity-0 transition-all duration-200" id="modalContent">
+            
+            <div class="bg-black text-white px-4 py-2 brutal-border mb-6 inline-block transform -rotate-1">
+                <h2 class="text-2xl font-bold uppercase">Pratonton Aduan</h2>
+            </div>
+            
+            <p class="font-bold mb-4 text-red-500">Sila semak butiran di bawah. Salinan PDF akan dihantar ke e-mel anda selepas pengesahan.</p>
+
+            <div class="space-y-4 bg-gray-100 brutal-border p-4 mb-8 text-sm md:text-base">
+                <div class="grid grid-cols-3 gap-2 border-b-2 border-black pb-2">
+                    <span class="font-bold text-gray-500 uppercase">Nama</span>
+                    <span id="prevNama" class="col-span-2 font-bold"></span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 border-b-2 border-black pb-2">
+                    <span class="font-bold text-gray-500 uppercase">Telefon</span>
+                    <span id="prevTel" class="col-span-2 font-bold"></span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 border-b-2 border-black pb-2">
+                    <span class="font-bold text-gray-500 uppercase">E-mel</span>
+                    <span id="prevEmail" class="col-span-2 font-bold"></span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 border-b-2 border-black pb-2">
+                    <span class="font-bold text-gray-500 uppercase">Kategori</span>
+                    <span id="prevJenis" class="col-span-2 font-bold bg-purple-200 inline-block px-2 brutal-border border-2"></span>
+                </div>
+                <div class="grid grid-cols-1 gap-2 pt-2">
+                    <span class="font-bold text-gray-500 uppercase">Deskripsi</span>
+                    <p id="prevDeskripsi" class="font-bold whitespace-pre-wrap bg-white p-3 brutal-border border-2"></p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button onclick="closePreview()" class="brutal-button flex-1 bg-white hover:bg-gray-200 brutal-border brutal-shadow-sm p-3 text-lg md:text-xl font-bold uppercase transition-all">
+                    Kembali Edit
+                </button>
+                <button id="btnSubmitFinal" onclick="submitAduan()" class="brutal-button flex-1 bg-green-400 hover:bg-green-500 brutal-border brutal-shadow-sm p-3 text-lg md:text-xl font-bold uppercase transition-all">
+                    Sah Hantar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // MASUKKAN URL MACRO WEB APP ANDA DI SINI
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwLiLpTsaO49hX11Ex2rYyXW0EKXQi_sySqrveMLTtv4w8fzZcSJGGZK4oI7pMkqnXm/exec'; 
+
+        const form = document.getElementById('aduanForm');
+        const modal = document.getElementById('previewModal');
+        const modalContent = document.getElementById('modalContent');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+
+        function validateForm() {
+            return form.checkValidity();
+        }
+
+        function showPreview() {
+            if (!validateForm()) {
+                form.reportValidity();
+                return;
+            }
+            document.getElementById('prevNama').innerText = document.getElementById('nama').value;
+            document.getElementById('prevTel').innerText = document.getElementById('telefon').value;
+            document.getElementById('prevEmail').innerText = document.getElementById('email').value;
+            document.getElementById('prevJenis').innerText = document.getElementById('jenisAduan').value;
+            document.getElementById('prevDeskripsi').innerText = document.getElementById('deskripsi').value;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closePreview() {
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        }
+
+        function submitAduan() {
+            const btnSubmit = document.getElementById('btnSubmitFinal');
+            const originalText = btnSubmit.innerText;
+            
+            // Ubah teks butang memberitahu proses email juga sedang berjalan
+            btnSubmit.innerText = 'HANTAR & JANA PDF...';
+            btnSubmit.disabled = true;
+            btnSubmit.classList.add('opacity-70', 'cursor-not-allowed');
+
+            errorAlert.classList.add('hidden');
+
+            const formData = {
+                nama: document.getElementById('nama').value,
+                telefon: document.getElementById('telefon').value,
+                email: document.getElementById('email').value,
+                jenisAduan: document.getElementById('jenisAduan').value,
+                deskripsi: document.getElementById('deskripsi').value
+            };
+
+            fetch(scriptURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                closePreview();
+                if(data.status === "success") {
+                    successAlert.classList.remove('hidden');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    form.reset();
+                    setTimeout(() => successAlert.classList.add('hidden'), 7000);
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                closePreview();
+                errorAlert.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            })
+            .finally(() => {
+                btnSubmit.innerText = originalText;
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('opacity-70', 'cursor-not-allowed');
+            });
+        }
+
+        // --- ADMIN DASHBOARD LOGIC ---
+        const viewForm = document.getElementById('viewForm');
+        const viewAuth = document.getElementById('viewAuth');
+        const viewDashboard = document.getElementById('viewDashboard');
+        const tabForm = document.getElementById('tabForm');
+        const tabAdmin = document.getElementById('tabAdmin');
+        
+        let isAdminAuthenticated = false;
+        let chartKategori = null;
+        let chartTrend = null;
+
+        function switchTab(tab) {
+            viewForm.classList.add('hidden');
+            viewAuth.classList.add('hidden');
+            viewDashboard.classList.add('hidden');
+
+            if (tab === 'form') {
+                viewForm.classList.remove('hidden');
+                tabForm.classList.replace('bg-white', 'bg-yellow-300');
+                tabAdmin.classList.replace('bg-yellow-300', 'bg-white');
+            } else if (tab === 'admin') {
+                tabForm.classList.replace('bg-yellow-300', 'bg-white');
+                tabAdmin.classList.replace('bg-white', 'bg-yellow-300');
+
+                if (isAdminAuthenticated) {
+                    viewDashboard.classList.remove('hidden');
+                    loadDashboardData();
+                } else {
+                    viewAuth.classList.remove('hidden');
+                    document.getElementById('adminPassword').focus();
+                }
+            }
+        }
+
+        function verifyPassword() {
+            const pwd = document.getElementById('adminPassword').value;
+            if (pwd === 'admin123') {
+                isAdminAuthenticated = true;
+                document.getElementById('authError').classList.add('hidden');
+                viewAuth.classList.add('hidden');
+                viewDashboard.classList.remove('hidden');
+                document.getElementById('adminPassword').value = '';
+                loadDashboardData(); 
+            } else {
+                document.getElementById('authError').classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') verifyPassword();
+        });
+
+        function loadDashboardData() {
+            const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT6GaUWO6-sw6xJBy2PnRuOWfGLbM47KF8mqaR_l5SWTyisT2kV4GWOMik_Jlp_Q-mA3u9eSgMCmoIP/pub?gid=1956598930&single=true&output=csv';
+            const loadingMsg = document.getElementById('dashboardLoading');
+            const dashboardContent = document.getElementById('dashboardContent');
+
+            loadingMsg.innerText = '⏳ Sedang memuat turun data dari Google Sheets...';
+            loadingMsg.classList.remove('hidden', 'text-red-500');
+            loadingMsg.classList.add('text-gray-600', 'animate-pulse');
+            dashboardContent.classList.add('hidden');
+
+            Papa.parse(csvUrl, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    processData(results.data);
+                    loadingMsg.classList.add('hidden');
+                    dashboardContent.classList.remove('hidden');
+                },
+                error: function(err) {
+                    loadingMsg.innerText = '❌ Gagal memuat turun data dari sistem. Sila muat semula halaman.';
+                    loadingMsg.classList.remove('text-gray-600', 'animate-pulse');
+                    loadingMsg.classList.add('text-red-500');
+                }
+            });
+        }
+
+        function processData(data) {
+            document.getElementById('totalAduan').innerText = data.length;
+
+            const kategoriCount = {};
+            const dateCount = {};
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            const reversedData = [...data].reverse();
+
+            reversedData.forEach((row, index) => {
+                const kat = row['Kategori'] || 'Lain-lain';
+                kategoriCount[kat] = (kategoriCount[kat] || 0) + 1;
+
+                let dateStr = 'Unknown';
+                if(row['Tarikh']) {
+                    const parsedDate = new Date(row['Tarikh']);
+                    if (!isNaN(parsedDate)) {
+                        dateStr = parsedDate.toLocaleDateString('ms-MY');
+                    } else {
+                        dateStr = row['Tarikh'].split(' ')[0];
+                    }
+                }
+                dateCount[dateStr] = (dateCount[dateStr] || 0) + 1;
+
+                if (index < 10) {
+                    const deskripsiRingkas = row['Deskripsi'] ? 
+                        (row['Deskripsi'].length > 60 ? row['Deskripsi'].substring(0, 60) + '...' : row['Deskripsi']) 
+                        : '-';
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-100 transition-colors";
+                    tr.innerHTML = `
+                        <td class="border-4 border-black p-3 font-bold text-sm">${dateStr}</td>
+                        <td class="border-4 border-black p-3 text-sm">${row['Nama'] || '-'}</td>
+                        <td class="border-4 border-black p-3 text-sm"><span class="bg-purple-200 px-2 py-1 brutal-border whitespace-nowrap font-bold">${kat}</span></td>
+                        <td class="border-4 border-black p-3 text-sm">${deskripsiRingkas}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                }
+            });
+
+            let topKat = 'Tiada Data';
+            let maxCount = 0;
+            for (const [k, v] of Object.entries(kategoriCount)) {
+                if (v > maxCount) { 
+                    maxCount = v; 
+                    topKat = k; 
+                }
+            }
+            document.getElementById('topKategori').innerText = `${topKat} (${maxCount})`;
+
+            renderCharts(kategoriCount, dateCount);
+        }
+
+        function renderCharts(kategoriCount, dateCount) {
+            const chartColors = ['#f87171', '#60a5fa', '#34d399', '#fbbf24', '#c084fc', '#f472b6'];
+
+            const katCtx = document.getElementById('kategoriChart').getContext('2d');
+            if (chartKategori) chartKategori.destroy();
+            chartKategori = new Chart(katCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(kategoriCount),
+                    datasets: [{
+                        data: Object.values(kategoriCount),
+                        backgroundColor: chartColors,
+                        borderColor: '#000',
+                        borderWidth: 4,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { font: { family: 'Space Grotesk', weight: 'bold', size: 12 }, color: '#000' } }
+                    }
+                }
+            });
+
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            if (chartTrend) chartTrend.destroy();
+            
+            const sortedDates = Object.keys(dateCount).sort((a,b) => a.localeCompare(b));
+            const trendData = sortedDates.map(d => dateCount[d]);
+
+            chartTrend = new Chart(trendCtx, {
+                type: 'bar',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: 'Bilangan Aduan',
+                        data: trendData,
+                        backgroundColor: '#60a5fa',
+                        borderColor: '#000',
+                        borderWidth: 4,
+                        borderRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Space Grotesk', weight: 'bold'}, color: '#000' }, grid: { color: '#000', lineWidth: 2, drawBorder: true } },
+                        x: { ticks: { font: { family: 'Space Grotesk', weight: 'bold'}, color: '#000' }, grid: { display: false, drawBorder: true, borderColor: '#000', borderWidth: 4 } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
